@@ -1,12 +1,10 @@
 package utilities;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * Created by heather.reid on 17/05/16.
@@ -15,61 +13,40 @@ import java.util.NoSuchElementException;
  * Ref: Richard Bradshaw aka Friendly
  * Tester https://github.com/FriendlyTester/Table-ControlObject
  */
-public class Table
-{
-    // Protected reference to the table body.
-    protected WebElement tableBody;
-    // List of all the tableHeaders used to get the column indices.
-    protected List<WebElement> tableHeaders;
+public class Table {
+    private WebElement TABLE_BODY;
+    // List of all the TABLE_HEADERS used to get the column indices.
+    private List<WebElement> TABLE_HEADERS;
     // List of all the rows to loop through to look for matches.
-    protected List<WebElement> tableRows;
+    private List<WebElement> TABLE_ROWS;
 
-    public Table(WebElement table) throws Exception
-    {
-        // TODO do I need to have a logger maybe to catch the errors?
-        try
-        {
-            // Look for and assign the tbody element.
-            tableBody = table.findElement(By.tagName("tbody"));
-        }
-        catch (Exception e)
-        {
-            throw new Exception(String.format("Couldn't find a tbody tag for this table. %s", e.getMessage()));
-        }
+    public Table(WebElement table) {
+        // Look for and assign the tbody element.
+        TABLE_BODY = table.findElement(By.tagName("tbody"));
 
-        try
-        {
-            // Look for all the table headers.
-            // TODO this had a ToList() at the end of it in C# code. Is that necessary here?
-            tableHeaders = table.findElements(By.tagName("th"));
-        }
-        catch (Exception e)
-        {
-            throw new Exception(String.format("Couldn't find any th tags within this table. %s", e.getMessage()));
-        }
+        // Look for all the table headers.
+        TABLE_HEADERS = table.findElements(By.tagName("th"));
 
-        try
-        {
-            // Look for and assign the tbody element.
-            // TODO this had a ToList() at the end of it in C# code. Is that necessary here?
-            tableRows = table.findElements(By.tagName("tr"));
-        }
-        catch (Exception e)
-        {
-            throw new Exception(String.format("This table doesn't contain any rows. %s", e.getMessage()));
-        }
+        // Look for and assign the tbody element, exclude table headers.
+        TABLE_ROWS = TABLE_BODY.findElements(By.tagName("tr"));
     }
 
-    protected int FindColumnIndex(final String columnName) throws Exception {
-        for (WebElement header : tableHeaders)
-        {
-            if (header.getText().equals(columnName))
-            {
-                return tableHeaders.indexOf(header) + 1;
-            }
-        }
+    /**
+     * Find the first instance in the table headers where
+     * the string matches the columnName we are looking for.
+     * We have to add one as list is zero indexed, however
+     * we would say column 1 not 0, also XPath isn't 0 based.
+     * @param columnName The header/title of the column we need the index for.
+     * @return the Index of the column that the header is for.
+     * @throws Exception No header matching the column name was found.
+     */
+    public int findColumnIndex(final String columnName) throws Exception {
 
-        throw new Exception(String.format("Unable to find %s in the list of columns found", columnName));
+        WebElement requiredColumn = TABLE_HEADERS.stream()
+                .filter(e -> e.getText().equals(columnName))
+                .findFirst()
+                .get();
+        return TABLE_HEADERS.indexOf(requiredColumn) + 1;
     }
 
     /**
@@ -79,54 +56,13 @@ public class Table
      * @param knownValue The value to look for.
      * @return The matching row element.
      */
-    public WebElement FindRowMatchingColumnData(String columnName, String knownValue) throws Exception
-    {
-        WebElement requiredRow = null;
-        int columnIndex = FindColumnIndex(columnName);
+    public WebElement findRowMatchingColumnData(String columnName, String knownValue) throws Exception {
+        int columnIndex = findColumnIndex(columnName);
 
-        try
-        {
-            /**
-             * Using the column index found by searching with the
-             * column header, find the row that contains the
-             * knownValue we are looking for.
-             */
-            while (tableRows.iterator().hasNext())
-            {
-                // TODO need to come back to this, not sure if this is correct.
-                if (tableRows.iterator().next().findElement(By.xpath(String.format("td[%d]", columnIndex))).getText().equals(knownValue))
-                {
-                    requiredRow = tableRows.iterator().next();
-                    // Print it just to check that I have this done right.
-                    System.out.println(requiredRow);
-                }
-            }
-            //requiredRow = tableRows
-        }
-        catch (Exception e)
-        {
-            if (e instanceof NoSuchElementException)
-            {
-                throw new Exception(String.format("Column index %d doesn't exist.", columnIndex));
-            }
-            if (e instanceof InvalidArgumentException)
-            {
-                //TODO is InvalidArgumentException ok here?
-                throw new Exception(String.format("Row containing %s in column index %d was not found", knownValue, columnIndex));
-            }
-            else
-            {
-                // Rethrow exception.
-                throw e;
-            }
-        }
-
-        if (requiredRow != null)
-        {
-            return requiredRow;
-        }
-
-        throw new Exception("Required row is null, unknown error occurred");
+        return TABLE_ROWS.stream()
+                .filter(e -> e.findElement(By.xpath(String.format("td[%d]", columnIndex))).getText().trim().equals(knownValue))
+                .findFirst()
+                .get();
     }
 
     /**
@@ -134,18 +70,16 @@ public class Table
      * @param knownValue The value to look for.
      * @return The matching row element.
      */
-    public WebElement FindFirstRowByKnownValue(String knownValue) throws Exception
-    {
+    public WebElement findFirstRowByKnownValue(String knownValue) throws Exception {
         int i = 1;
 
-        // TODO not sure if size is correct here.
-        while (i <= tableHeaders.size())
-        {
-            for (WebElement row: tableRows)
-            {
-                if (row.findElement(By.xpath(String.format("td[%d]", i))).getText() == knownValue)
-                {
-                    return row;
+        while (i <= TABLE_HEADERS.size()) {
+            for (WebElement row : TABLE_ROWS) {
+                List<WebElement> cells = row.findElements(By.tagName("td"));
+                for (WebElement cell : cells) {
+                    if (cell.getText().equals(knownValue)){
+                        return row;
+                    }
                 }
             }
             i++;
@@ -160,32 +94,17 @@ public class Table
      * @param knownValue The value to look for.
      * @return True if the value is found.
      */
-    public boolean IsValuePresentWithinColumn(String columnName, String knownValue) throws Exception
-    {
-        try
-        {
-            /**
-             * Using the column index found by searching with the
-             * column header, see if the knownValue we are
-             * looking for is in the column.
-             */
-            while (tableRows.iterator().hasNext())
-            {
-                // TODO need to come back to this, not sure if this is correct.
-                if (tableRows.iterator().next().findElement(By.xpath(String.format("td[%d]", FindColumnIndex(columnName)))).getText().equals(knownValue))
-                {
-                    WebElement matchedColumn = tableRows.iterator().next();
-                    // Print it just to check that I have this done right.
-                    System.out.println(matchedColumn);
+    public boolean isValuePresentWithinColumn(String columnName, String knownValue) throws Exception {
+        for (WebElement row : TABLE_ROWS) {
+            List<WebElement> cells = row.findElements(By.tagName("td"));
+            for (WebElement cell : cells) {
+                if (cell.getText().equals(knownValue)) {
+                    return true;
                 }
             }
         }
-        catch (Exception e) // TODO is the format of this catch statement correct?
-        {
-            return false;
-        }
 
-        return true;
+        return false;
     }
 
     /**
@@ -194,34 +113,17 @@ public class Table
      * @param knownValue The known value to look for.
      * @return Matching cell element.
      */
-    public WebElement FindCellByColumnAndKnownValue(String columnName, String knownValue) throws Exception
-    {
-        WebElement matchedRow = null;
-
-        try
-        {
-            /**
-             * Using the column index found by searching with the
-             * column header, see if the knownValue we are
-             * looking for is in the row.
-             */
-            while (tableRows.iterator().hasNext())
-            {
-                // TODO need to come back to this, not sure if this is correct.
-                if (tableRows.iterator().next().findElement(By.xpath(String.format("td[%d]", FindColumnIndex(columnName)))).getText().equals(knownValue))
-                {
-                    matchedRow = tableRows.iterator().next();
-                    // Print it just to check that I have this done right.
-                    System.out.println(matchedRow);
+    public WebElement findCellByColumnAndKnownValue(String columnName, String knownValue) throws Exception {
+        for (WebElement row : TABLE_ROWS) {
+            List<WebElement> cells = row.findElements(By.tagName("td"));
+            for (WebElement cell : cells) {
+                if (cell.getText().equals(knownValue)) {
+                    return cell;
                 }
             }
         }
-        catch (Exception e) // TODO is the format of this catch statement correct?
-        {
-            throw new Exception(String.format("Unable to find a cell in column: %s containing %s", columnName, knownValue));
-        }
 
-        return matchedRow.findElement(By.xpath(String.format("td[%d]", FindColumnIndex(columnName))));
+        throw new Exception(String.format("Unable to find a cell in column: %s containing %s", columnName, knownValue));
     }
 
     /**
@@ -230,16 +132,13 @@ public class Table
      * @param columnName The column name to read value from.
      * @return Matching cell element.
      */
-    public WebElement FindCellByRowAndColumnName(WebElement row, String columnName) throws Exception
-    {
+    public WebElement findCellByRowAndColumnName(WebElement row, String columnName) throws Exception {
         WebElement cell;
 
-        try
-        {
-            cell = row.findElement(By.xpath(String.format("td[%d]", FindColumnIndex(columnName))));
+        try {
+            cell = row.findElement(By.xpath(String.format("td[%d]", findColumnIndex(columnName))));
         }
-        catch (Exception e) // TODO is the format of this catch statement correct?
-        {
+        catch (Exception e) {
             throw new Exception("Unable to find a cell using given row and columnName");
         }
 
@@ -250,13 +149,11 @@ public class Table
      * Returns a list of all the column headers.
      * @return A list of all the column names as strings.
      */
-    public List<String> readAllColumnHeaders()
-    {
+    public List<String> readAllColumnHeaders() {
         List<String> columnNames = new ArrayList<String>();
 
-        for (WebElement element: tableHeaders)
-        {
-            columnNames.add(element.getText()); //TODO is this getText correct?
+        for (WebElement element: TABLE_HEADERS) {
+            columnNames.add(element.getText());
         }
 
         return columnNames;
@@ -266,20 +163,19 @@ public class Table
      * Return the number of columns from the table.
      * @return Number of columns as an int.
      */
-    public int ColumnCount()
-    {
-        // TODO not sure if .size is the best way to do this.
-        return tableHeaders.size();
+    public int columnCount() {
+        return TABLE_HEADERS.size();
     }
 
     /**
      * Returns the number of rows in the table.
+     * Added a plus 1 to also include the header
+     * row which is excluded in the TABLE_ROWS
+     * declaration.
      * @return Number of rows as an int.
      */
-    public int RowCount()
-    {
-        //TODO not sure about this .size either.
-        return tableRows.size();
+    public int rowCount() {
+        return TABLE_ROWS.size()+1;
     }
 
     /**
@@ -288,9 +184,8 @@ public class Table
      * @param row The number of rows.
      * @return Matching cell element.
      */
-    public WebElement FindCellByColumnAndRowNumber(String columnName, int row) throws Exception
-    {
-        WebElement matchingCell = tableBody.findElement(By.xpath(String.format("tr[%d]/td[%d]", row, FindColumnIndex(columnName))));
+    public WebElement findCellByColumnAndRowNumber(String columnName, int row) throws Exception {
+        WebElement matchingCell = TABLE_BODY.findElement(By.xpath(String.format("tr[%d]/td[%d]", row, findColumnIndex(columnName))));
 
         return matchingCell;
     }
@@ -300,15 +195,12 @@ public class Table
      * @param columnName The name of the column to read from.
      * @return A list of all column data as strings.
      */
-    public List<String> ReadAllDataFromAColumn(String columnName) throws Exception
-    {
+    public List<String> readAllDataFromAColumn(String columnName) throws Exception {
         // Need to be able to add items to columnData so declare as ArrayList.
         List<String> columnData = new ArrayList<String>();
-        int columnIndex = FindColumnIndex(columnName);
+        int columnIndex = findColumnIndex(columnName);
 
-        for (WebElement row: tableRows)
-        {
-            //TODO is getText correct here?
+        for (WebElement row : TABLE_ROWS) {
             columnData.add(row.findElement(By.xpath(String.format("td[%d]", columnIndex))).getText());
         }
 
@@ -321,12 +213,10 @@ public class Table
      * @param knownValue The value to find a matching row.
      * @return The value of cell as a string.
      */
-    public String ReadColumnValueForRowContaining(String columnName, String knownValue) throws Exception
-    {
-        WebElement requiredRow = FindFirstRowByKnownValue(knownValue);
-        WebElement requiredCell = FindCellByRowAndColumnName(requiredRow, columnName);
+    public String readColumnValueForRowContaining(String columnName, String knownValue) throws Exception {
+        WebElement requiredRow = findFirstRowByKnownValue(knownValue);
+        WebElement requiredCell = findCellByRowAndColumnName(requiredRow, columnName);
 
-        //TODO is getText appropriate here?
         return requiredCell.getText();
     }
 
@@ -337,12 +227,10 @@ public class Table
      * @param knownValueColumn Column which should contain the known value.
      * @return Value of the matching cell as a string.
      */
-    public String ReadAColumnForRowContainingValueInColumn(String columnToRead, String knownValue, String knownValueColumn) throws Exception
-    {
-        WebElement requiredRow = FindRowMatchingColumnData(knownValueColumn, knownValue);
-        WebElement requiredCell = FindCellByRowAndColumnName(requiredRow, columnToRead);
+    public String readAColumnForRowContainingValueInColumn(String columnToRead, String knownValue, String knownValueColumn) throws Exception {
+        WebElement requiredRow = findRowMatchingColumnData(knownValueColumn, knownValue);
+        WebElement requiredCell = findCellByRowAndColumnName(requiredRow, columnToRead);
 
-        //TODO is getText appropriate here?
         return requiredCell.getText();
     }
 }
