@@ -40,7 +40,7 @@ public class Table {
      * @return the Index of the column that the header is for.
      * @throws Exception No header matching the column name was found.
      */
-    public int findColumnIndex(final String columnName) throws Exception {
+    public int findColumnIndex(final String columnName) {
 
         WebElement requiredColumn = tableHeaders.stream()
                 .filter(e -> e.getText().equals(columnName))
@@ -56,7 +56,7 @@ public class Table {
      * @param knownValue The value to look for.
      * @return The matching row element.
      */
-    public WebElement findRowMatchingColumnData(String columnName, String knownValue) throws Exception {
+    public WebElement findRowMatchingColumnData(String columnName, String knownValue) {
         int columnIndex = findColumnIndex(columnName);
 
         return tableRows.stream()
@@ -92,18 +92,13 @@ public class Table {
      * @param knownValue The value to look for.
      * @return True if the value is found.
      */
-    public boolean isValuePresentWithinColumn(String columnName, String knownValue) throws Exception {
+    public boolean isValuePresentWithinColumn(String columnName, String knownValue) {
 
-        for (WebElement row : tableRows) {
-            List<WebElement> cells = row.findElements(By.tagName("td"));
-            for (WebElement cell : cells) {
-                if (cell.getText().equals(knownValue)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        int columnIndex = findColumnIndex(columnName);
+        return tableRows.stream()
+                .filter(e -> e.findElement(By.xpath(String.format("td[%d]", columnIndex))).getText().trim().equals(knownValue))
+                .findFirst()
+                .isPresent();
     }
 
     /**
@@ -112,17 +107,15 @@ public class Table {
      * @param knownValue The known value to look for.
      * @return Matching cell element.
      */
-    public WebElement findCellByColumnAndKnownValue(String columnName, String knownValue) throws Exception {
-        for (WebElement row : tableRows) {
-            List<WebElement> cells = row.findElements(By.tagName("td"));
-            for (WebElement cell : cells) {
-                if (cell.getText().equals(knownValue)) {
-                    return cell;
-                }
-            }
-        }
+    public WebElement findCellByColumnAndKnownValue(String columnName, String knownValue) {
 
-        throw new Exception(String.format("Unable to find a cell in column: %s containing %s", columnName, knownValue));
+        int columnIndex = findColumnIndex(columnName);
+        WebElement matchedRow = tableRows.stream()
+                .filter(e -> e.findElement(By.xpath(String.format("td[%d]", columnIndex))).getText().trim().equals(knownValue))
+                .findFirst()
+                .get();
+
+        return matchedRow.findElement(By.xpath(String.format("td[%d]", columnIndex)));
     }
 
     /**
@@ -131,17 +124,9 @@ public class Table {
      * @param columnName The column name to read value from.
      * @return Matching cell element.
      */
-    public WebElement findCellByRowAndColumnName(WebElement row, String columnName) throws Exception {
-        WebElement cell;
+    public WebElement findCellByRowAndColumnName(WebElement row, String columnName) {
 
-        try {
-            cell = row.findElement(By.xpath(String.format("td[%d]", findColumnIndex(columnName))));
-        }
-        catch (Exception e) {
-            throw new Exception("Unable to find a cell using given row and columnName");
-        }
-
-        return cell;
+        return row.findElement(By.xpath(String.format("td[%d]", findColumnIndex(columnName))));
     }
 
     /**
@@ -183,10 +168,9 @@ public class Table {
      * @param row The number of rows.
      * @return Matching cell element.
      */
-    public WebElement findCellByColumnAndRowNumber(String columnName, int row) throws Exception {
-        WebElement matchingCell = tableBody.findElement(By.xpath(String.format("tr[%d]/td[%d]", row, findColumnIndex(columnName))));
+    public WebElement findCellByColumnAndRowNumber(String columnName, int row) {
 
-        return matchingCell;
+        return tableBody.findElement(By.xpath(String.format("tr[%d]/td[%d]", row, findColumnIndex(columnName))));
     }
 
     /**
@@ -194,7 +178,7 @@ public class Table {
      * @param columnName The name of the column to read from.
      * @return A list of all column data as strings.
      */
-    public List<String> readAllDataFromAColumn(String columnName) throws Exception {
+    public List<String> readAllDataFromAColumn(String columnName) {
         // Need to be able to add items to columnData so declare as ArrayList.
         List<String> columnData = new ArrayList<String>();
         int columnIndex = findColumnIndex(columnName);
@@ -226,7 +210,7 @@ public class Table {
      * @param knownValueColumn Column which should contain the known value.
      * @return Value of the matching cell as a string.
      */
-    public String readAColumnForRowContainingValueInColumn(String columnToRead, String knownValue, String knownValueColumn) throws Exception {
+    public String readAColumnForRowContainingValueInColumn(String columnToRead, String knownValue, String knownValueColumn) {
         WebElement requiredRow = findRowMatchingColumnData(knownValueColumn, knownValue);
         WebElement requiredCell = findCellByRowAndColumnName(requiredRow, columnToRead);
 

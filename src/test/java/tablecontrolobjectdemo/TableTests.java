@@ -37,7 +37,7 @@ public class TableTests {
     }
 
     @Test
-    public void verifyColumnHeaders() throws Exception {
+    public void verifyColumnHeaders() {
         List<String> ExpectedColumnHeaders = new ArrayList<String>();
         ExpectedColumnHeaders.add("Company");
         ExpectedColumnHeaders.add("Contact");
@@ -50,35 +50,35 @@ public class TableTests {
     }
 
     @Test
-    public void verifyColumnCount() throws Exception {
+    public void verifyColumnCount() {
         Table w3cTable = new Table(WebDriver.findElement(By.id("customers")));
 
         assertEquals(3, w3cTable.columnCount());
     }
 
     @Test
-    public void verifyRowCount() throws Exception{
+    public void verifyRowCount() {
         Table w3cTable = new Table(WebDriver.findElement(By.id("customers")));
         // There are 12 rows but there is also a header so 13 rows.
         assertEquals(13, w3cTable.rowCount());
     }
 
     @Test
-    public void verifyRowContentsUsingKnownColumnValue() throws Exception {
+    public void verifyRowContentsUsingKnownColumnValue() {
         Table w3cTable = new Table(WebDriver.findElement(By.id("customers")));
 
         assertEquals("Alfreds Futterkiste Maria Anders Germany", w3cTable.findRowMatchingColumnData("Company", "Alfreds Futterkiste").getText());
     }
 
     @Test
-    public void verifyRowContentContainingKnownValue() throws Exception{
+    public void verifyRowContentContainingKnownValue() throws Exception {
         Table w3cTable = new Table(WebDriver.findElement(By.id("customers")));
 
         assertEquals("Laughing Bacchus Winecellars Yoshi Tannamuri Canada", w3cTable.findFirstRowByKnownValue("Canada").getText());
     }
 
     @Test
-    public void doesColumnContain() throws Exception {
+    public void doesColumnContain() {
         Table w3cTable = new Table(WebDriver.findElement(By.id("customers")));
 
         assertTrue(w3cTable.isValuePresentWithinColumn("Country", "Denmark"));
@@ -86,7 +86,7 @@ public class TableTests {
     }
 
     @Test
-    public void findCellByKnownColumnValue() throws Exception {
+    public void findCellByKnownColumnValue() {
         Table w3cTable = new Table(WebDriver.findElement(By.id("customers")));
 
         WebElement matchedCell = w3cTable.findCellByColumnAndKnownValue("Company", "North/South");
@@ -96,7 +96,7 @@ public class TableTests {
     }
 
     @Test
-    public void findCellByRowAndColumnName() throws Exception {
+    public void findCellByRowAndColumnName() {
         Table w3cTable = new Table(WebDriver.findElement(By.id("customers")));
 
         // Demonstration of another table method to get a row.
@@ -106,14 +106,14 @@ public class TableTests {
     }
 
     @Test
-    public void findCellByColumnAndRowNumber() throws Exception {
+    public void findCellByColumnAndRowNumber() {
         Table w3cTable = new Table(WebDriver.findElement(By.id("customers")));
 
         assertEquals("Giovanni Rovelli", w3cTable.findCellByColumnAndRowNumber("Contact", 8).getText());
     }
 
     @Test
-    public void verifyAllColumnData() throws Exception {
+    public void verifyAllColumnData() {
         List<String> ExpectedColumnData = new ArrayList<String>();
         ExpectedColumnData.add("Germany");
         ExpectedColumnData.add("Sweden");
@@ -134,7 +134,7 @@ public class TableTests {
     }
 
     @Test
-    public void verifyFranciscoChangCompany() throws Exception {
+    public void verifyFranciscoChangCompany() {
         Table w3cTable = new Table(WebDriver.findElement(By.id("customers")));
 
         assertEquals("Centro comercial Moctezuma", w3cTable.readAColumnForRowContainingValueInColumn("Company", "Francisco Chang", "Contact"));
