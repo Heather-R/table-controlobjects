@@ -14,21 +14,21 @@ import java.util.List;
  * Tester https://github.com/FriendlyTester/Table-ControlObject
  */
 public class Table {
-    private WebElement TABLE_BODY;
-    // List of all the TABLE_HEADERS used to get the column indices.
-    private List<WebElement> TABLE_HEADERS;
+    private WebElement tableBody;
+    // List of all the tableHeaders used to get the column indices.
+    private List<WebElement> tableHeaders;
     // List of all the rows to loop through to look for matches.
-    private List<WebElement> TABLE_ROWS;
+    private List<WebElement> tableRows;
 
     public Table(WebElement table) {
         // Look for and assign the tbody element.
-        TABLE_BODY = table.findElement(By.tagName("tbody"));
+        tableBody = table.findElement(By.tagName("tbody"));
 
         // Look for all the table headers.
-        TABLE_HEADERS = table.findElements(By.tagName("th"));
+        tableHeaders = table.findElements(By.tagName("th"));
 
         // Look for and assign the tbody element, exclude table headers.
-        TABLE_ROWS = TABLE_BODY.findElements(By.tagName("tr"));
+        tableRows = tableBody.findElements(By.tagName("tr"));
     }
 
     /**
@@ -42,11 +42,11 @@ public class Table {
      */
     public int findColumnIndex(final String columnName) throws Exception {
 
-        WebElement requiredColumn = TABLE_HEADERS.stream()
+        WebElement requiredColumn = tableHeaders.stream()
                 .filter(e -> e.getText().equals(columnName))
                 .findFirst()
                 .get();
-        return TABLE_HEADERS.indexOf(requiredColumn) + 1;
+        return tableHeaders.indexOf(requiredColumn) + 1;
     }
 
     /**
@@ -59,7 +59,7 @@ public class Table {
     public WebElement findRowMatchingColumnData(String columnName, String knownValue) throws Exception {
         int columnIndex = findColumnIndex(columnName);
 
-        return TABLE_ROWS.stream()
+        return tableRows.stream()
                 .filter(e -> e.findElement(By.xpath(String.format("td[%d]", columnIndex))).getText().trim().equals(knownValue))
                 .findFirst()
                 .get();
@@ -71,10 +71,9 @@ public class Table {
      * @return The matching row element.
      */
     public WebElement findFirstRowByKnownValue(String knownValue) throws Exception {
-        int i = 1;
 
-        while (i <= TABLE_HEADERS.size()) {
-            for (WebElement row : TABLE_ROWS) {
+        for (int i = 1; i <= tableHeaders.size(); i++) {
+            for (WebElement row : tableRows) {
                 List<WebElement> cells = row.findElements(By.tagName("td"));
                 for (WebElement cell : cells) {
                     if (cell.getText().equals(knownValue)){
@@ -82,7 +81,6 @@ public class Table {
                     }
                 }
             }
-            i++;
         }
 
         throw new Exception(String.format("Unable to find a row containing: %s in a column", knownValue));
@@ -95,7 +93,8 @@ public class Table {
      * @return True if the value is found.
      */
     public boolean isValuePresentWithinColumn(String columnName, String knownValue) throws Exception {
-        for (WebElement row : TABLE_ROWS) {
+
+        for (WebElement row : tableRows) {
             List<WebElement> cells = row.findElements(By.tagName("td"));
             for (WebElement cell : cells) {
                 if (cell.getText().equals(knownValue)) {
@@ -114,7 +113,7 @@ public class Table {
      * @return Matching cell element.
      */
     public WebElement findCellByColumnAndKnownValue(String columnName, String knownValue) throws Exception {
-        for (WebElement row : TABLE_ROWS) {
+        for (WebElement row : tableRows) {
             List<WebElement> cells = row.findElements(By.tagName("td"));
             for (WebElement cell : cells) {
                 if (cell.getText().equals(knownValue)) {
@@ -152,7 +151,7 @@ public class Table {
     public List<String> readAllColumnHeaders() {
         List<String> columnNames = new ArrayList<String>();
 
-        for (WebElement element: TABLE_HEADERS) {
+        for (WebElement element: tableHeaders) {
             columnNames.add(element.getText());
         }
 
@@ -164,18 +163,18 @@ public class Table {
      * @return Number of columns as an int.
      */
     public int columnCount() {
-        return TABLE_HEADERS.size();
+        return tableHeaders.size();
     }
 
     /**
      * Returns the number of rows in the table.
      * Added a plus 1 to also include the header
-     * row which is excluded in the TABLE_ROWS
+     * row which is excluded in the tableRows
      * declaration.
      * @return Number of rows as an int.
      */
     public int rowCount() {
-        return TABLE_ROWS.size()+1;
+        return tableRows.size()+1;
     }
 
     /**
@@ -185,7 +184,7 @@ public class Table {
      * @return Matching cell element.
      */
     public WebElement findCellByColumnAndRowNumber(String columnName, int row) throws Exception {
-        WebElement matchingCell = TABLE_BODY.findElement(By.xpath(String.format("tr[%d]/td[%d]", row, findColumnIndex(columnName))));
+        WebElement matchingCell = tableBody.findElement(By.xpath(String.format("tr[%d]/td[%d]", row, findColumnIndex(columnName))));
 
         return matchingCell;
     }
@@ -200,7 +199,7 @@ public class Table {
         List<String> columnData = new ArrayList<String>();
         int columnIndex = findColumnIndex(columnName);
 
-        for (WebElement row : TABLE_ROWS) {
+        for (WebElement row : tableRows) {
             columnData.add(row.findElement(By.xpath(String.format("td[%d]", columnIndex))).getText());
         }
 
