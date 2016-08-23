@@ -23,10 +23,12 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="ControlObjects" />
+        <module name="table-controlobjects" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="ControlObjects" target="1.5" />
+      <module name="table-controlobjects" target="1.5" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -216,4 +216,54 @@ public class Table {
 
         return requiredCell.getText();
     }
+
+    /**
+     * Finds a button that has HTML tag a which is the tag given to buttons
+     * with a navigation link attached to them. If a cell only has one link
+     * button then there will be no number after the a tag so this function
+     * is only valid for that case.
+     * @param columnName Column to read the data from
+     * @param knownValue Known value from another column in the row
+     * @param knownValueColumn The column header of the known value in the row
+     * @return The value of the button as a WebElement.
+     */
+    public WebElement findOnlyLinkButtonInCell(String columnName, String knownValue, String knownValueColumn) {
+        WebElement requiredRow = findRowMatchingColumnData(knownValueColumn, knownValue);
+        WebElement requiredCell = findCellByRowAndColumnName(requiredRow, columnName);
+
+        return requiredCell.findElement(By.tagName("a"));
+    }
+
+    /**
+     * Finds a button that has HTML tag button. If a cell has more
+     * than one button then there will be a number after the a tag so
+     * this function is only valid for that case.
+     * @param columnName Column to read the data from
+     * @param knownValue Known value from another column in the row
+     * @param knownValueColumn The column header of the known value in the row
+     * @param buttonIndex The index of the button to be found
+     * @return The value of the button as a WebElement.
+     */
+    public WebElement findIndexedButtonInCell(String columnName, String knownValue, String knownValueColumn, int buttonIndex) {
+        WebElement requiredRow = findRowMatchingColumnData(knownValueColumn, knownValue);
+        WebElement requiredCell = findCellByRowAndColumnName(requiredRow, columnName);
+
+        return requiredCell.findElement(By.xpath(String.format("div/button[%d]", buttonIndex)));
+    }
+
+    /**
+     * Finds a button that has HTML tag button. If a cell only has
+     * one button then there will be no number after the a tag so
+     * this function is only valid for that case.
+     * @param columnName Column to read the data from
+     * @param knownValue Known value from another column in the row
+     * @param knownValueColumn The column header of the known value in the row
+     * @return The value of the button as a WebElement.
+     */
+    public WebElement findOnlyButtonInCell(String columnName, String knownValue, String knownValueColumn) {
+        WebElement requiredRow = findRowMatchingColumnData(knownValueColumn, knownValue);
+        WebElement requiredCell = findCellByRowAndColumnName(requiredRow, columnName);
+
+        return requiredCell.findElement(By.xpath("div/button"));
+    }
 }
